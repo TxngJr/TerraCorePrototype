@@ -18,4 +18,4 @@ labels:
 images:
   - name: terracore-app
     newName: ghcr.io/txngjr/terracore-prototype
-    newTag: sha-0cf79e8
+    newTag: sha-9dbaa47
