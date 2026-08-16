@@ -19,6 +19,9 @@ kubectl -n argocd get application terracore-prototype
 Application จะอ่าน `main/deploy/k8s`, สร้าง namespace `terracore-prototype` และ deploy
 public image จาก GHCR ให้อัตโนมัติ จากนั้นจึงทำหัวข้อ Cloudflare route เพื่อเปิดโดเมน
 
+repository มี `Namespace` resource ที่ sync wave `-1` อยู่แล้ว จึงสร้าง namespace ก่อน
+PVC, Service และ Deployment แม้ Application ที่สร้างจาก UI ไม่ได้เปิด Auto-Create Namespace
+
 ## ภาพรวม
 
 ```text

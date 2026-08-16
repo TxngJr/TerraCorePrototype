@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: terracore-prototype
 
 resources:
+  - namespace.yaml
   - persistent-volume-claim.yaml
   - deployment.yaml
   - service.yaml
