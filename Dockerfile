@@ -1,5 +1,9 @@
 FROM python:3.13-slim
 
+LABEL org.opencontainers.image.source="https://github.com/TxngJr/TerraCorePrototype" \
+      org.opencontainers.image.description="TerraCORE IDE prototype" \
+      org.opencontainers.image.licenses="ISC"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000 \

@@ -16,5 +16,5 @@ labels:
 
 images:
   - name: terracore-app
-    newName: ghcr.io/REPLACE_WITH_GITHUB_OWNER/terracore-prototype
+    newName: ghcr.io/txngjr/terracore-prototype
     newTag: prototype

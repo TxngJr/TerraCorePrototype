@@ -45,29 +45,16 @@ kubectl get nodes
 kubectl get pods -A | grep -E 'argocd|cloudflared'
 ```
 
-## 1. ตั้งค่า repository และชื่อ image
+## 1. GitHub repository
 
-repo ปัจจุบันต้องถูก push ขึ้น Git ก่อน เพราะ Argo CD อ่าน desired state จาก Git ไม่ใช่จาก
-โฟลเดอร์ในเครื่อง ตัวอย่างนี้สมมติใช้ GitHub และ branch `main`:
+ไฟล์ทั้งหมดตั้งค่าไว้กับ Public repository นี้แล้ว:
 
-```bash
-git remote add origin https://github.com/<GITHUB_OWNER>/TerraCorePrototype.git
-./deploy/configure.sh \
-  https://github.com/<GITHUB_OWNER>/TerraCorePrototype.git \
-  <GITHUB_OWNER>
-
-git diff
-git add .
-git commit -m "chore: add Argo CD prototype deployment"
-git push -u origin main
+```text
+https://github.com/TxngJr/TerraCorePrototype
 ```
 
-สคริปต์แก้เพียง 2 ค่า:
-
-- `spec.source.repoURL` ใน `deploy/argocd/application.yaml`
-- `images[].newName` ใน `deploy/k8s/kustomization.yaml`
-
-ห้าม apply `application.yaml` ขณะที่ยังมีคำว่า `REPLACE_WITH_...`
+Argo CD ใช้ branch `main`, path `deploy/k8s` และ image
+`ghcr.io/txngjr/terracore-prototype` โดยตรง ไม่ต้องแก้ placeholder หรือรันสคริปต์ตั้งค่า
 
 ## 2. Build image ด้วย GitHub Actions
 
@@ -85,7 +72,7 @@ workflow `.github/workflows/build-image.yaml` จะทำงานเมื่�
 3. เปิดหน้า **Actions** และรอ job `Build and publish prototype image` ผ่าน
 4. เปิด package `terracore-prototype` แล้วเปลี่ยน **Package visibility** เป็น **Public**
 
-ตรวจว่าหลัง workflow จบ `newName` และ `newTag` ไม่ใช่ placeholder:
+ตรวจว่าหลัง workflow จบ `newTag` เปลี่ยนเป็น immutable tag:
 
 ```bash
 git pull --ff-only
@@ -124,7 +111,7 @@ kubectl -n argocd get application terracore-prototype
 | Application Name | `terracore-prototype` |
 | Project | `default` |
 | Sync Policy | `Automatic`, เปิด Prune และ Self Heal |
-| Repository URL | URL ของ Git repo นี้ |
+| Repository URL | `https://github.com/TxngJr/TerraCorePrototype.git` |
 | Revision | `refs/heads/main` |
 | Path | `deploy/k8s` |
 | Cluster URL | `https://kubernetes.default.svc` |
@@ -285,7 +272,6 @@ imagePullSecrets:
 Dockerfile                              image สำหรับ production-like prototype
 .dockerignore                           ลด build context และกัน DB หลุดเข้า image
 .github/workflows/build-image.yaml      build/push GHCR และอัปเดต immutable image tag
-deploy/configure.sh                     ใส่ repo URL และ GHCR owner
 deploy/argocd/application.yaml          Argo CD Application
 deploy/k8s/kustomization.yaml           Kustomize entry point และ image tag
 deploy/k8s/deployment.yaml              Flask/Gunicorn workload

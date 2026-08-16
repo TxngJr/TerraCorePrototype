@@ -10,7 +10,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: REPLACE_WITH_GIT_REPOSITORY_URL
+    repoURL: https://github.com/TxngJr/TerraCorePrototype.git
     targetRevision: refs/heads/main
     path: deploy/k8s
   destination:
