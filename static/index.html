@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TerraCORE IDE — Block Code → MicroPython</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23151821'/><path d='M9 11.5h14v3.4h-2.3a1.6 1.6 0 1 0 0 3.2H23v3.4H9v-3.4h2.3a1.6 1.6 0 1 0 0-3.2H9z' fill='%23fff'/></svg>">
+<link rel="stylesheet" href="/static/css/fonts.css">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <!-- โซน 1 — ตัวตนของสิ่งที่กำลังแก้อยู่ -->
+  <div class="zone zone-identity">
+    <span class="brand" aria-label="TerraCORE IDE">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="7"/>
+        <path class="brand-notch" d="M9 11.5h14v3.4h-2.3a1.6 1.6 0 1 0 0 3.2H23v3.4H9v-3.4h2.3a1.6 1.6 0 1 0 0-3.2H9z"/>
+      </svg>
+      <span class="brand-name">TerraCORE</span>
+    </span>
+
+    <span class="identity-sep" aria-hidden="true"></span>
+
+    <input id="projectName" class="proj-name" spellcheck="false"
+           aria-label="ชื่อโปรเจกต์">
+    <button id="btnProjectMenu" class="icon-btn" aria-haspopup="menu"
+            aria-expanded="false" aria-label="เปลี่ยนโปรเจกต์">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6.5 8 10.5 12 6.5"/></svg>
+    </button>
+  </div>
+
+  <!-- โซน 2 — control หลักตัวเดียวของหน้านี้ -->
+  <div class="mode-switch" role="tablist" aria-label="สลับโหมดการแก้ไข">
+    <button id="tabBlock" class="mode-btn is-active" role="tab" aria-selected="true">Block Code</button>
+    <button id="tabCode"  class="mode-btn"           role="tab" aria-selected="false">MicroPython</button>
+  </div>
+
+  <!-- โซน 3 — การกระทำ -->
+  <div class="zone zone-actions">
+    <button id="btnSave" class="btn btn-primary">บันทึก</button>
+    <button id="btnMore" class="icon-btn" aria-haspopup="menu"
+            aria-expanded="false" aria-label="ตัวเลือกเพิ่มเติม">
+      <svg viewBox="0 0 16 16" aria-hidden="true" class="icon-dots">
+        <circle cx="3.5" cy="8" r="1.35"/><circle cx="8" cy="8" r="1.35"/><circle cx="12.5" cy="8" r="1.35"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="workbench">
+  <!-- โหมด Block -->
+  <section id="blockPane" class="pane pane-block">
+    <div class="pane-head">
+      <span class="pane-title">ESP32 DevKit v1</span>
+      <span class="pane-note">30 ขา</span>
+      <button id="btnWiring" class="link-btn">ดูการต่อวงจร</button>
+    </div>
+    <div id="blocklyDiv" class="blockly-host"></div>
+
+    <div id="copilot" class="copilot" hidden role="complementary"
+         aria-labelledby="copilotTitle">
+      <div class="copilot-head">
+        <span class="copilot-tag">Copilot</span>
+        <span class="copilot-title" id="copilotTitle"></span>
+      </div>
+      <p class="copilot-reason" id="copilotReason"></p>
+      <div class="copilot-actions">
+        <button id="copilotDismiss" class="btn">ไม่ใช่ตอนนี้</button>
+        <button id="copilotConfirm" class="btn btn-primary">วางบล็อก</button>
+      </div>
+    </div>
+  </section>
+
+  <aside id="previewPane" class="pane pane-preview">
+    <div class="pane-head">
+      <span class="pane-title">MicroPython</span>
+      <span class="pane-note">สร้างจากบล็อกอัตโนมัติ</span>
+      <button id="btnToCode" class="link-btn">แก้ไขในโหมดโค้ด</button>
+    </div>
+    <div class="editor editor-readonly">
+      <div class="gutter" id="previewGutter" aria-hidden="true"></div>
+      <pre class="hl" id="previewCode"><code></code></pre>
+    </div>
+  </aside>
+
+  <!-- โหมดโค้ด -->
+  <section id="codePane" class="pane pane-code" hidden>
+    <div class="pane-head">
+      <span class="pane-title">main.py</span>
+      <span id="detachBadge" class="badge" hidden>แก้ด้วยมือ · ไม่ซิงก์กับบล็อกแล้ว</span>
+      <button id="btnResync" class="link-btn" hidden>สร้างใหม่จากบล็อก</button>
+    </div>
+    <div class="editor">
+      <div class="gutter" id="codeGutter" aria-hidden="true"></div>
+      <div class="code-area">
+        <pre class="hl" id="codeHl" aria-hidden="true"><code></code></pre>
+        <textarea id="codeInput" spellcheck="false" autocomplete="off"
+                  autocapitalize="off" wrap="off" aria-label="โค้ด MicroPython"></textarea>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="statusbar">
+  <span id="statusSave" class="status-item">พร้อมใช้งาน</span>
+  <span id="statusBlocks" class="status-item">0 บล็อก</span>
+  <span id="statusLines" class="status-item">0 บรรทัด</span>
+  <span class="spacer"></span>
+  <span class="status-item">ESP32</span>
+  <span class="status-item">SQLite</span>
+</footer>
+
+<!-- จอเล็กเกินกว่าจะลากบล็อกได้จริง -->
+<div class="small-screen">
+  <div class="small-screen-card">
+    <svg class="brand-mark brand-mark-lg" viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="7"/>
+      <path class="brand-notch" d="M9 11.5h14v3.4h-2.3a1.6 1.6 0 1 0 0 3.2H23v3.4H9v-3.4h2.3a1.6 1.6 0 1 0 0-3.2H9z"/>
+    </svg>
+    <h1>TerraCORE IDE</h1>
+    <p>
+      การต่อบล็อกต้องใช้พื้นที่กว้าง หน้าจอนี้แคบเกินกว่าจะลากบล็อกได้ถนัด
+    </p>
+    <p class="small-screen-hint">
+      เปิดบนคอมพิวเตอร์ หรือแท็บเล็ตแนวนอน (กว้างอย่างน้อย 768px)
+    </p>
+  </div>
+</div>
+
+<div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-card">
+    <h2 id="modalTitle">ยืนยัน</h2>
+    <p id="modalBody"></p>
+    <div class="modal-actions">
+      <button id="modalCancel" class="btn">ยกเลิก</button>
+      <button id="modalOk" class="btn btn-primary">ตกลง</button>
+    </div>
+  </div>
+</div>
+
+<div id="wiringModal" class="modal modal-wide" hidden role="dialog" aria-modal="true"
+     aria-labelledby="wiringTitle">
+  <div class="modal-card wiring-card">
+    <header class="wiring-head">
+      <div>
+        <h2 id="wiringTitle">การต่อวงจร</h2>
+        <p id="wiringCount" class="wiring-count"></p>
+      </div>
+      <button id="wiringClose" class="btn">ปิด</button>
+    </header>
+    <div class="wiring-body">
+      <div id="wiringBoard" class="wiring-board-col"></div>
+      <div id="wiringList" class="wiring-list-col"></div>
+    </div>
+    <p class="wiring-foot">
+      ขาที่กระพริบคือขาที่โปรแกรมนี้ใช้ · ตัวเลข GPIO บนบอร์ดจริงพิมพ์กำกับไว้ข้างขาอยู่แล้ว
+    </p>
+  </div>
+</div>
+
+<div id="menu" class="menu" hidden role="menu"></div>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script src="/static/vendor/blockly/blockly_compressed.js"></script>
+<script src="/static/vendor/blockly/blocks_compressed.js"></script>
+<script src="/static/vendor/blockly/python_compressed.js"></script>
+<script src="/static/vendor/blockly/msg/th.js"></script>
+<script src="/static/js/blocks.js"></script>
+<script src="/static/js/toolbox.js"></script>
+<script src="/static/js/examples.js"></script>
+<script src="/static/js/highlight.js"></script>
+<script src="/static/js/copilot.js"></script>
+<script src="/static/js/wiring.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

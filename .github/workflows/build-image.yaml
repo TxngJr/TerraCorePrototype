@@ -1,0 +1,77 @@
+name: Build and publish prototype image
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - deploy/k8s/kustomization.yaml
+      - deploy/argocd/application.yaml
+      - "**/*.md"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: terracore-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive image values
+        id: vars
+        shell: bash
+        run: |
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Sign in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ steps.vars.outputs.owner }}/terracore-prototype:${{ steps.vars.outputs.tag }}
+            ghcr.io/${{ steps.vars.outputs.owner }}/terracore-prototype:prototype
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+
+      - name: Record immutable image tag for Argo CD
+        shell: bash
+        env:
+          IMAGE_OWNER: ${{ steps.vars.outputs.owner }}
+          IMAGE_TAG: ${{ steps.vars.outputs.tag }}
+        run: |
+          sed -i -E "s|^([[:space:]]*newName:).*|\\1 ghcr.io/${IMAGE_OWNER}/terracore-prototype|" deploy/k8s/kustomization.yaml
+          sed -i -E "s|^([[:space:]]*newTag:).*|\\1 ${IMAGE_TAG}|" deploy/k8s/kustomization.yaml
+
+          if git diff --quiet -- deploy/k8s/kustomization.yaml; then
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add deploy/k8s/kustomization.yaml
+          git commit -m "chore(deploy): use image ${IMAGE_TAG} [skip ci]"
+          git push

@@ -1,0 +1,18 @@
+{
+  "name": "terracore-ide",
+  "version": "0.1.0",
+  "scripts": {
+    "gen": "node tools/gen_examples.js build/examples",
+    "test": "node tools/test_copilot.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "TerraCORE IDE prototype - Block Code to MicroPython",
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans-thai": "^5.3.0",
+    "blockly": "^11.2.1"
+  },
+  "private": true
+}

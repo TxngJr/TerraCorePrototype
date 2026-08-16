@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: terracore-prototype
+  namespace: argocd
+  annotations:
+    link.argocd.argoproj.io/external-link: https://terracore.denmannsolutions.com
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: REPLACE_WITH_GIT_REPOSITORY_URL
+    targetRevision: refs/heads/main
+    path: deploy/k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: terracore-prototype
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

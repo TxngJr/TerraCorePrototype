@@ -1,0 +1,14 @@
+.git
+.github
+.claude
+deploy
+tools
+node_modules
+build
+__pycache__
+*.py[cod]
+*.db
+*.sqlite*
+.env
+.DS_Store
+*:Zone.Identifier

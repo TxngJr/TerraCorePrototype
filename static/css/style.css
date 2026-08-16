@@ -1,0 +1,680 @@
+/* =========================================================================
+   TerraCORE IDE
+   ระบบ: พื้นขาวเงียบ เส้นคั่นบางเป็นตัวแบ่งหลัก เงาใช้เฉพาะชั้นที่ลอยจริง
+   สีในหน้าจอถูกสงวนไว้ให้ "บล็อก" กับ "โค้ด" — chrome เป็นหมึกกับเทา
+   ม่วงทำหน้าที่เดียว: บอกว่าตอนนี้อยู่โหมดไหน และ focus อยู่ที่ไหน
+   ========================================================================= */
+:root {
+  /* หมึก */
+  --ink:        #14161c;
+  --ink-2:      #3d434f;
+  --ink-3:      #6e757e;
+  --ink-4:      #949aa4;
+
+  /* พื้น */
+  --paper:      #ffffff;
+  --paper-2:    #fafbfc;
+  --paper-3:    #f2f4f6;
+
+  /* เส้น */
+  --rule:       #e4e7eb;
+  --rule-2:     #d2d7de;
+
+  /* ม่วง — ใช้เฉพาะโหมดที่เลือกกับ focus */
+  --accent:     #5b4be8;
+  --accent-ink: #4a3ad4;
+  --accent-bg:  #eeecfd;
+
+  /* สถานะ */
+  --warn:       #9a6200;
+  --warn-bg:    #fdf4e3;
+  --danger:     #b3261e;
+  --ok:         #1f7a55;
+
+  --ui:   "IBM Plex Sans Thai", "Noto Sans Thai", Thonburi, -apple-system,
+          BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ตัวอักษรตั้งให้อ่านออกตอนฉายโปรเจกเตอร์ */
+  --code-size: 14px;
+  --code-line: 22px;
+  --code-pad:  18px;
+
+  --r-sm: 5px;
+  --r-md: 9px;
+
+  --shadow-pop: 0 8px 28px rgba(20, 22, 28, .13), 0 1px 3px rgba(20, 22, 28, .08);
+
+  --topbar-h: 56px;
+  --status-h: 30px;
+}
+
+* { box-sizing: border-box; }
+
+/* .pane เป็น display:flex ซึ่งทับ hidden — ต้องบังคับไว้ */
+[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input { font-family: inherit; font-size: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ---------------------------------------------------------------- topbar */
+.topbar {
+  height: var(--topbar-h);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.zone { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.zone-actions { justify-content: flex-end; }
+
+.brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.brand-mark { width: 22px; height: 22px; display: block; }
+.brand-mark rect { fill: var(--ink); }
+.brand-notch { fill: var(--paper); }
+.brand-name {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.identity-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--rule);
+  flex-shrink: 0;
+}
+
+.proj-name {
+  min-width: 0;
+  flex: 0 1 auto;
+  width: auto;      /* ความกว้างตามเนื้อหา ตั้งด้วย attribute size ใน app.js */
+  max-width: 34ch;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  font-size: 15px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+.proj-name:hover { border-color: var(--rule); }
+.proj-name:focus { border-color: var(--accent); outline: none; background: var(--paper); }
+
+/* ---------------------------------------------------------------- ปุ่ม */
+.btn {
+  height: 32px;
+  padding: 0 13px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s, border-color .12s;
+}
+.btn:hover { background: var(--paper-3); }
+
+.btn-primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+  font-weight: 500;
+}
+.btn-primary:hover { background: #262a33; border-color: #262a33; }
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink-3);
+  transition: background .12s, color .12s;
+}
+.icon-btn:hover { background: var(--paper-3); color: var(--ink); }
+.icon-btn[aria-expanded="true"] { background: var(--paper-3); color: var(--ink); }
+.icon-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.icon-btn svg.icon-dots { fill: currentColor; stroke: none; }
+
+/* ------------------------------------------------------------ mode switch */
+.mode-switch {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--r-md);
+  background: var(--paper-3);
+  justify-self: center;
+}
+
+.mode-btn {
+  height: 28px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .14s, color .14s;
+}
+.mode-btn:hover { color: var(--ink); }
+.mode-btn.is-active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* -------------------------------------------------------------- workbench */
+.workbench {
+  height: calc(100vh - var(--topbar-h) - var(--status-h));
+  display: flex;
+  min-height: 0;
+}
+
+.pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.pane-block { flex: 1 1 auto; position: relative; }
+.blockly-host { flex: 1; min-height: 0; }
+
+.pane-preview {
+  width: 460px;
+  flex: 0 0 460px;
+  border-left: 1px solid var(--rule);
+  background: var(--paper-2);
+}
+.pane-code { flex: 1 1 auto; background: var(--paper); }
+
+.pane-head {
+  height: 38px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--rule);
+  flex-shrink: 0;
+}
+.pane-title {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink);
+  align-self: center;
+}
+.pane-note { font-size: 12px; color: var(--ink-4); align-self: center; }
+
+.link-btn {
+  margin-left: auto;
+  align-self: center;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+.link-btn:hover { text-decoration: underline; }
+
+.badge {
+  align-self: center;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ----------------------------------------------------------- code editor */
+.editor {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+.editor-readonly { background: var(--paper-2); }
+
+.gutter {
+  flex: 0 0 auto;
+  padding: var(--code-pad) 10px var(--code-pad) 16px;
+  font-family: var(--mono);
+  font-size: var(--code-size);
+  line-height: var(--code-line);
+  color: var(--ink-4);
+  text-align: right;
+  overflow: hidden;
+  user-select: none;
+  white-space: pre;
+  font-variant-numeric: tabular-nums;
+}
+
+.code-area { position: relative; flex: 1; min-width: 0; }
+
+/* pre ที่ไฮไลต์กับ textarea ต้องมี metric เท่ากันเป๊ะ ไม่งั้นเคอร์เซอร์เหลื่อม */
+.hl,
+.code-area textarea {
+  margin: 0;
+  padding: var(--code-pad) var(--code-pad) var(--code-pad) 0;
+  font-family: var(--mono);
+  font-size: var(--code-size);
+  line-height: var(--code-line);
+  letter-spacing: 0;
+  tab-size: 4;
+  white-space: pre;
+  word-wrap: normal;
+  border: 0;
+}
+
+.editor-readonly .hl { flex: 1; overflow: auto; }
+
+.code-area .hl {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.code-area textarea {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  outline: none;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--ink);
+  overflow: auto;
+}
+.code-area textarea::selection { background: #d9d5fb; }
+
+.hl code { font: inherit; color: var(--ink); }
+
+/* syntax — หมึกเป็นหลัก สีต่ำความอิ่มตัว ผ่าน AA บนพื้นขาวทุกตัว */
+.t-com { color: var(--ink-3); font-style: italic; }
+.t-str { color: #2e7d57; }
+.t-num { color: #a35b1f; }
+.t-kw  { color: var(--accent-ink); font-weight: 500; }
+.t-bif { color: #1f6fa8; }
+.t-def { color: var(--ink); font-weight: 600; }
+.t-dec { color: #a35b1f; }
+
+/* -------------------------------------------------------------- statusbar */
+.statusbar {
+  height: var(--status-h);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 16px;
+  border-top: 1px solid var(--rule);
+  background: var(--paper-2);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.spacer { margin-left: auto; }
+.status-item.is-saving { color: var(--warn); }
+.status-item.is-saved { color: var(--ok); }
+.status-item.is-error { color: var(--danger); }
+
+/* ------------------------------------------------------------------ menu */
+.menu {
+  position: fixed;
+  z-index: 90;
+  min-width: 260px;
+  max-width: 340px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 5px;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  box-shadow: var(--shadow-pop);
+}
+
+.menu-label {
+  padding: 8px 10px 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: var(--ink-4);
+}
+
+.menu-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+}
+.menu-item:hover { background: var(--paper-3); }
+.menu-item.is-selected { font-weight: 600; }
+.menu-item.is-selected::after { content: ""; }
+.menu-item .menu-hint {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-4);
+  white-space: nowrap;
+}
+.menu-item .menu-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-4);
+}
+.menu-item-danger { color: var(--danger); }
+.menu-item-danger:hover { background: #fdeceb; }
+
+.menu-sep { height: 1px; margin: 5px 6px; background: var(--rule); }
+
+/* ----------------------------------------------------------------- modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 22, 28, .28);
+}
+.modal-card {
+  width: min(440px, calc(100vw - 40px));
+  padding: 24px;
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 24px 60px rgba(20, 22, 28, .22);
+}
+.modal-card h2 { margin: 0 0 10px; font-size: 17px; font-weight: 600; }
+.modal-card p { margin: 0 0 22px; color: var(--ink-2); font-size: 14px; line-height: 1.65; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ------------------------------------------------------- โมดัลการต่อวงจร */
+.modal-wide .modal-card { padding: 0; }
+
+.wiring-card {
+  width: min(940px, calc(100vw - 48px));
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+}
+
+.wiring-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--rule);
+}
+.wiring-head h2 { margin: 0 0 3px; font-size: 17px; font-weight: 600; }
+.wiring-count { margin: 0; font-size: 13px; color: var(--ink-3); }
+
+.wiring-body {
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  gap: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wiring-board-col {
+  padding: 18px 12px;
+  border-right: 1px solid var(--rule);
+  background: var(--paper-2);
+  overflow-y: auto;
+  display: grid;
+  place-items: start center;
+}
+.wiring-list-col { padding: 18px 24px 22px; overflow-y: auto; }
+
+.wire-board { width: 100%; max-width: 360px; height: auto; }
+
+.wire-pcb { fill: #eef1f4; stroke: var(--rule-2); stroke-width: 1; }
+.wire-usb { fill: #c8ced7; }
+.wire-board-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--ink-4);
+}
+
+.wire-pad { fill: #cdd3dc; }
+.wire-pin-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--ink-4);
+}
+.wire-pin.is-gnd .wire-pad,
+.wire-pin.is-power .wire-pad { fill: #aeb6c2; }
+
+/* ขาที่โปรแกรมใช้ — กระพริบให้เห็นชัดว่าต้องต่อตรงไหน */
+.wire-pin.is-used .wire-pad {
+  fill: var(--accent);
+  animation: wire-blink 1.15s ease-in-out infinite;
+}
+.wire-pin.is-used .wire-pin-label { fill: var(--accent-ink); font-weight: 600; }
+
+/* ขาของบล็อกที่เลือก — ยังกระพริบเหมือนขาอื่นที่ต้องต่อ แต่ตีกรอบเข้มเพิ่ม
+   ถ้าทับด้วยสีดำทึบจะอ่านเหมือนขาที่ปิดอยู่แทนที่จะเป็นขาที่กำลังชี้ถึง */
+.wire-pin.is-focus .wire-pad { stroke: var(--ink); stroke-width: 2; }
+.wire-pin.is-focus .wire-pin-label { fill: var(--ink); font-weight: 600; }
+
+.wire-onboard .wire-led { fill: #cdd3dc; }
+.wire-onboard .wire-btn { fill: #cdd3dc; }
+.wire-onboard-label { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-4); }
+.wire-onboard.is-used .wire-led,
+.wire-onboard.is-used .wire-btn {
+  fill: var(--accent);
+  animation: wire-blink 1.15s ease-in-out infinite;
+}
+.wire-onboard.is-used .wire-onboard-label { fill: var(--accent-ink); font-weight: 600; }
+.wire-onboard.is-focus .wire-led,
+.wire-onboard.is-focus .wire-btn { stroke: var(--ink); stroke-width: 2; }
+.wire-onboard.is-focus .wire-onboard-label { fill: var(--ink); font-weight: 600; }
+
+@keyframes wire-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .3; }
+}
+
+.wire-item {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.wire-item:last-child { border-bottom: 0; }
+.wire-item.is-focus {
+  margin: 0 -14px;
+  padding: 13px 14px;
+  border-radius: var(--r-sm);
+  background: var(--accent-bg);
+  border-bottom-color: transparent;
+}
+
+.wire-item-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.wire-pin-name { font-family: var(--mono); font-size: 14px; font-weight: 500; }
+.wire-tag {
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--paper-3);
+  color: var(--ink-3);
+  font-size: 11.5px;
+}
+.wire-tag-focus { background: var(--accent); color: #fff; }
+
+.wire-use + .wire-use { margin-top: 9px; padding-top: 9px; border-top: 1px dashed var(--rule); }
+.wire-use-head { display: flex; align-items: baseline; gap: 8px; }
+.wire-device { font-size: 13.5px; font-weight: 600; }
+.wire-role { font-size: 12px; color: var(--ink-4); }
+.wire-how { margin: 4px 0 0; font-size: 13px; line-height: 1.65; color: var(--ink-2); }
+
+.wire-empty { margin: 0; color: var(--ink-3); font-size: 13.5px; line-height: 1.7; }
+
+.wiring-foot {
+  margin: 0;
+  padding: 12px 24px 16px;
+  border-top: 1px solid var(--rule);
+  font-size: 12px;
+  color: var(--ink-4);
+}
+
+/* ----------------------------------------------------------------- toast */
+.toast {
+  position: fixed;
+  bottom: 46px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 120;
+  padding: 10px 18px;
+  border-radius: var(--r-sm);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 13.5px;
+  box-shadow: var(--shadow-pop);
+}
+.toast.is-error { background: var(--danger); }
+
+/* --------------------------------------------------------------- Copilot */
+.copilot {
+  position: absolute;
+  left: 18px;   /* copilot.js เลื่อนให้พ้นกล่องเครื่องมือตอนแสดงจริง */
+  bottom: 18px;
+  z-index: 80;  /* กล่องเครื่องมือของ Blockly อยู่ที่ 70 */
+  width: 340px;
+  padding: 15px 16px 14px;
+  border: 1px solid var(--rule-2);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  box-shadow: var(--shadow-pop);
+}
+
+.copilot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+
+.copilot-tag {
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--accent-bg);
+  color: var(--accent-ink);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.copilot-title { font-size: 14.5px; font-weight: 600; }
+
+.copilot-reason {
+  margin: 0 0 14px;
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.copilot-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.copilot-actions .btn { height: 30px; font-size: 13px; }
+
+/* บล็อกที่ Copilot เสนอ — จางลงและขลิบเส้นประ ให้เห็นว่ายังไม่ใช่ของจริง
+   ตอน setEnabled(false) Blockly เปลี่ยนไปใช้ลายทแยงสีเทา จึงต้องดึงสีเดิม
+   กลับมาผ่านตัวแปร --ghost-fill ที่ copilot.js ใส่ไว้บนกลุ่ม SVG */
+.tc-ghost { pointer-events: none; }
+.tc-ghost > .blocklyPath {
+  fill: var(--ghost-fill) !important;
+  fill-opacity: .26 !important;
+  stroke: var(--accent) !important;
+  stroke-width: 2px !important;
+  stroke-dasharray: 6 4;
+  stroke-opacity: .85;
+}
+.tc-ghost .blocklyText { fill-opacity: .62; }
+.tc-ghost .blocklyFieldRect,
+.tc-ghost .blocklyEditableText > rect { fill-opacity: .35; }
+
+/* --------------------------------------------------------------- Blockly */
+.blocklyToolboxDiv {
+  border-right: 1px solid var(--rule);
+  padding: 8px 8px 8px 6px;
+}
+
+/* Blockly ใส่ border-left 8px ชิดขอบจอเป็นแถบสีหมวด — ย่อให้เป็นขีดสั้น
+   มีระยะหายใจ อ่านเป็นป้ายหมวดแทนที่จะเป็นแถบสีค้างขอบ */
+.blocklyTreeRow {
+  margin: 1px 0;
+  padding: 7px 10px !important;
+  border-left-width: 3px !important;
+  border-radius: 5px;
+  transition: background .12s;
+}
+.blocklyTreeRow:hover { background: var(--paper-3) !important; }
+.blocklyTreeSelected { background: var(--paper-3) !important; }
+.blocklyTreeSeparator {
+  margin: 7px 4px !important;
+  border: 0 !important;
+  border-top: 1px solid var(--rule) !important;
+}
+
+.blocklyTreeLabel { font-family: var(--ui) !important; font-size: 13.5px !important; }
+.blocklyText { font-family: var(--ui) !important; }
+.blocklyFlyoutBackground { fill: var(--paper-2); }
+.blocklyMainBackground { stroke: none; }
+
+/* --------------------------------------------------------- จอเล็ก/มือถือ */
+.small-screen { display: none; }
+
+@media (max-width: 767px) {
+  .topbar, .workbench, .statusbar { display: none !important; }
+  .small-screen {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 28px;
+    background: var(--paper);
+  }
+  .small-screen-card { max-width: 340px; text-align: center; }
+  .brand-mark-lg { width: 40px; height: 40px; margin: 0 auto 18px; }
+  .small-screen-card h1 { margin: 0 0 12px; font-size: 20px; font-weight: 600; }
+  .small-screen-card p { margin: 0 0 10px; color: var(--ink-2); line-height: 1.65; }
+  .small-screen-hint { font-size: 13px; color: var(--ink-4); }
+}
+
+/* แท็บเล็ตแนวนอน — บีบ preview ลงแต่ยังเห็นโค้ดคู่กับบล็อกได้ */
+@media (min-width: 768px) and (max-width: 1180px) {
+  .pane-preview { width: 340px; flex-basis: 340px; }
+  .pane-note { display: none; }
+  .proj-name { width: 14ch; }
+  :root { --code-size: 13px; --code-line: 20px; --code-pad: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

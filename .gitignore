@@ -1,0 +1,7 @@
+node_modules/
+build/
+terracore.db
+__pycache__/
+*.pyc
+.DS_Store
+.env
