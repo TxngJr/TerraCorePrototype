@@ -6,6 +6,19 @@ Cloudflare Tunnel ตัวเดิมใน k3s และไม่เปิด
 `denmannsolutions.com`; ถ้าต้องการใช้ apex จริงให้เว้น Subdomain ในขั้นตอน Cloudflare
 และตรวจว่า apex ไม่มี route เดิมที่ยังใช้งานอยู่ก่อน
 
+## Quick deploy
+
+เมื่อ cluster มี Argo CD ใน namespace `argocd` แล้ว ใช้ manifest จาก Public GitHub
+repository ได้โดยตรง:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/TxngJr/TerraCorePrototype/main/deploy/argocd/application.yaml
+kubectl -n argocd get application terracore-prototype
+```
+
+Application จะอ่าน `main/deploy/k8s`, สร้าง namespace `terracore-prototype` และ deploy
+public image จาก GHCR ให้อัตโนมัติ จากนั้นจึงทำหัวข้อ Cloudflare route เพื่อเปิดโดเมน
+
 ## ภาพรวม
 
 ```text

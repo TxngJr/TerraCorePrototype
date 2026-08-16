@@ -25,6 +25,12 @@ python3 app.py
 เพิ่ม Published application route จนถึง rollback/backup ได้ที่
 [deploy/README.md](deploy/README.md)
 
+ถ้า Argo CD ติดตั้งอยู่ใน namespace `argocd` แล้ว deploy ได้ทันทีด้วย:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/TxngJr/TerraCorePrototype/main/deploy/argocd/application.yaml
+```
+
 ## โครงสร้าง
 
 ```
