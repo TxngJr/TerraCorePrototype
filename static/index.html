@@ -39,6 +39,14 @@
 
   <!-- โซน 3 — การกระทำ -->
   <div class="zone zone-actions">
+    <button id="btnUpload" class="btn btn-upload" type="button"
+            aria-label="อัปโหลดโค้ดไป ESP32 และสร้าง AIS Cloud Dashboard">
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M8 10.5V2.8M5.2 5.7 8 2.8l2.8 2.9M3 9.5v3.7h10V9.5"/>
+      </svg>
+      <span id="btnUploadLabel">อัปโหลดไป ESP32</span>
+      <span class="upload-cloud-dot" aria-hidden="true"></span>
+    </button>
     <button id="btnSave" class="btn btn-primary">บันทึก</button>
     <button id="btnMore" class="icon-btn" aria-haspopup="menu"
             aria-expanded="false" aria-label="ตัวเลือกเพิ่มเติม">
@@ -157,6 +165,58 @@
     <p class="wiring-foot">
       ขาที่กระพริบคือขาที่โปรแกรมนี้ใช้ · ตัวเลข GPIO บนบอร์ดจริงพิมพ์กำกับไว้ข้างขาอยู่แล้ว
     </p>
+  </div>
+</div>
+
+<div id="flashModal" class="modal" hidden role="dialog" aria-modal="true"
+     aria-labelledby="flashTitle">
+  <div class="modal-card flash-card">
+    <header class="flash-head">
+      <div>
+        <span class="flash-kicker">WEB FLASHER · PROTOTYPE</span>
+        <h2 id="flashTitle">อัปโหลดไป ESP32</h2>
+      </div>
+      <button id="flashClose" class="icon-btn" type="button" aria-label="ปิด" disabled>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8"/></svg>
+      </button>
+    </header>
+
+    <div class="flash-device">
+      <span class="flash-device-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 1v3m6-3v3M9 20v3m6-3v3M2 8h3m-3 4h3m-3 4h3m14-8h3m-3 4h3m-3 4h3"/></svg>
+      </span>
+      <span><strong>ESP32 DevKit v1</strong><small>USB Serial · อุปกรณ์จำลองพร้อมใช้งาน</small></span>
+      <span id="flashPercent" class="flash-percent">0%</span>
+    </div>
+
+    <div class="flash-progress" aria-hidden="true"><span id="flashProgressBar"></span></div>
+
+    <ol id="flashSteps" class="flash-steps">
+      <li><span class="step-mark"></span><span>เตรียม MicroPython firmware</span></li>
+      <li><span class="step-mark"></span><span>เชื่อมต่อบอร์ดผ่าน USB</span></li>
+      <li><span class="step-mark"></span><span>เขียน main.py ลง ESP32</span></li>
+      <li><span class="step-mark"></span><span>ตรวจสอบและรีสตาร์ตบอร์ด</span></li>
+      <li><span class="step-mark"></span><span>สร้าง AIS Cloud Dashboard อัตโนมัติ</span></li>
+    </ol>
+
+    <div id="flashResult" class="flash-result" hidden>
+      <span class="result-check" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9"/></svg>
+      </span>
+      <div>
+        <strong>อัปโหลดสำเร็จ · AIS Cloud Dashboard พร้อมแล้ว</strong>
+        <span id="flashDashboardUrl"></span>
+      </div>
+    </div>
+
+    <p id="flashError" class="flash-error" hidden></p>
+    <div class="flash-actions">
+      <span id="flashStatus">กำลังเตรียมการอัปโหลด…</span>
+      <button id="flashDone" class="btn" type="button" hidden>ปิด</button>
+      <a id="flashOpenDashboard" class="btn btn-primary" href="#" target="_blank" rel="noopener" hidden>
+        เปิด AIS Cloud Dashboard
+      </a>
+    </div>
   </div>
 </div>
 

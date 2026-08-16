@@ -3,8 +3,8 @@
 Block Code → MicroPython สำหรับ ESP32 พร้อมสลับโหมดระหว่าง **Block** กับ **โค้ด MicroPython**
 เก็บโปรเจกต์ทั้งหมดไว้ใน SQLite
 
-ขอบเขตของ prototype ตัวนี้คือช่วง `Block UI → MicroPython Generator` ตาม MVP Checklist ในสไลด์
-ยังไม่รวม Web Flasher, Device Simulator, Dashboard และ AI Copilot
+ขอบเขตของ prototype ตัวนี้ครอบคลุม `Block UI → MicroPython Generator → Mock Web Flasher
+→ AIS Cloud Dashboard` ตาม MVP Checklist ในสไลด์ รวม Copilot แบบ rule-based และผังการต่อวงจร
 
 ## รัน
 
@@ -37,7 +37,9 @@ kubectl apply -f https://raw.githubusercontent.com/TxngJr/TerraCorePrototype/mai
 app.py                    Flask + SQLite (REST API + เสิร์ฟหน้าเว็บ)
 static/
   index.html
+  dashboard.html          หน้า AIS Cloud Dashboard แยกตามโปรเจกต์
   css/style.css           ธีมสว่าง โทเคนสี/ตัวอักษร/ระยะ
+  css/dashboard.css       เกจ, control และ activity ของ Dashboard
   css/fonts.css           @font-face ของฟอนต์ที่ vendor ไว้
   js/blocks.js            นิยามบล็อก TerraCORE + ตัวแปลงเป็น MicroPython
   js/toolbox.js           กล่องเครื่องมือ
@@ -46,6 +48,7 @@ static/
   js/wiring.js            ผังการต่อวงจร ESP32 + คำอธิบายรายขา
   js/highlight.js         ไฮไลต์ syntax Python (ไม่พึ่ง library)
   js/app.js               ตัวควบคุมหน้าเว็บ, สลับโหมด, autosave
+  js/dashboard.js         telemetry simulator + ส่ง command กลับ ESP32
   vendor/blockly/         Blockly 11.2.1 + ภาษาไทย
   vendor/fonts/           IBM Plex Sans Thai + IBM Plex Mono (woff2, ~128KB)
 tools/gen_examples.js     สร้างโค้ดจากตัวอย่างแบบ headless ไว้ตรวจ generator
@@ -84,7 +87,7 @@ tools/test_copilot.js     ทดสอบกฎของ Copilot แบบ headl
 - **เริ่มต้น** — เมื่อเริ่มทำงาน, ทำซ้ำตลอดไป, หน่วงเวลา
 - **เอาต์พุต** — ตั้งขาดิจิทัล, สลับสถานะ, PWM, แสดงข้อความ
 - **อินพุต / เซนเซอร์** — อ่านดิจิทัล, อ่านอนาล็อก, ปุ่ม, DHT11/DHT22, แปลงช่วงค่า
-- **WiFi & Cloud** — เชื่อมต่อ WiFi, เช็คสถานะ, ส่งค่าขึ้น TerraCORE Cloud
+- **WiFi & AIS Cloud** — เชื่อมต่อ WiFi, เช็คสถานะ, ส่งข้อมูลไป AIS Cloud Dashboard
 - และหมวดมาตรฐานของ Blockly (ตรรกะ, วนซ้ำ, คณิตศาสตร์, ข้อความ, ตัวแปร, ฟังก์ชัน)
 
 ### ชื่อตัวแปรภาษาไทย
@@ -157,9 +160,38 @@ autosave ก็ไม่เขียนลงฐานข้อมูลจน�
 | DELETE | `/api/projects/<id>` | ลบ (revisions ถูกลบตาม) |
 | GET | `/api/projects/<id>/revisions` | รายการเวอร์ชัน |
 | GET | `/api/revisions/<id>` | อ่านเวอร์ชันย้อนหลัง |
+| POST | `/api/projects/<id>/mock-upload` | จำลอง flash และ provision Dashboard |
+| GET | `/api/dashboards/<token>` | config, telemetry และ command ล่าสุด |
+| POST | `/api/dashboards/<token>/mock-tick` | จำลอง ESP32 ส่งค่ารอบใหม่/รับ command |
+| POST | `/api/dashboards/<token>/commands` | ส่ง command จาก Cloud ไปอุปกรณ์ |
+| POST | `/api/cloud/ingest` | รับ telemetry ด้วย Mock Device Token ภายใน prototype |
+| GET | `/api/cloud/devices/<device-token>/commands` | ให้ simulator poll command ที่รออยู่ |
 
 autosave ทำงานหลังหยุดแก้ 0.8 วินาที และจะข้ามถ้าเนื้อหาไม่ได้เปลี่ยนจริง
 ปุ่ม 💾 บันทึก (หรือ ⌘/Ctrl+S) จะเก็บ revision ไว้ด้วย เก็บสูงสุด 30 เวอร์ชันต่อโปรเจกต์
+
+## Mock Web Flasher + AIS Cloud Dashboard
+
+กด **“อัปโหลดไป ESP32”** ที่มุมขวาบน ระบบจะสาธิต flow `compile → USB → flash →
+verify → provision AIS Cloud` แล้วสร้างลิงก์ `/dashboard/<token>` ให้อัตโนมัติ ลิงก์เดิมถูกใช้ซ้ำ
+เมื่ออัปโหลดโปรเจกต์เดิมอีกครั้ง ส่วนชื่อเกจจะอ่านจาก key ของบล็อก
+`ส่งข้อมูลไป AIS Cloud Dashboard`; ถ้าโปรเจกต์ยังไม่มีบล็อก AIS Cloud จะสร้างเกจอุณหภูมิ ความชื้น และแสง
+เป็นค่าเริ่มต้นเพื่อใช้พรีเซนต์ได้ทันที
+
+หน้า AIS Cloud Dashboard แสดงเข็มเกจและกราฟย่อยที่เคลื่อนไหวทุก 1.6 วินาที พร้อม control สำหรับ LED,
+พัดลม และปั๊มน้ำ ทุกค่า telemetry และ command ผ่าน REST API ของ Flask ในโปรเจกต์นี้และเก็บใน
+SQLite จริง ต้นทางอุปกรณ์เป็น simulator และมีป้าย `LOCAL MOCK · ไม่เชื่อม AIS จริง` ชัดเจน
+
+ชื่อ **AIS Cloud** ใช้เป็นชื่อสมมติสำหรับหน้าพรีเซนต์เท่านั้น ไม่มีการเรียก API, ใช้ credential
+หรือเชื่อมบริการจริงของ AIS โค้ด MicroPython จากบล็อก `ส่งข้อมูลไป AIS Cloud Dashboard`
+จะพิมพ์ `[AIS Cloud Mock]` ทาง Serial เท่านั้น ส่วนข้อมูลบน Dashboard สร้างโดย simulator ฝั่ง Flask
+
+ลำดับแนะนำตอนพรีเซนต์:
+
+1. เปิดตัวอย่างที่มีบล็อกอ่านเซนเซอร์และส่ง Cloud
+2. กด “อัปโหลดไป ESP32” แล้วให้กรรมการเห็นการ provision อัตโนมัติ
+3. กด “เปิด AIS Cloud Dashboard” ดู telemetry และเข็มเกจขยับ
+4. สลับ LED หรือปรับพัดลม แล้วชี้รายการ `TX` ที่เข้าคิวและเปลี่ยนเป็น “ถึงอุปกรณ์แล้ว”
 
 ## ตรวจงานแบบ headless
 
@@ -171,11 +203,12 @@ node tools/gen_examples.js /tmp/gen
 หลังแก้ตัวแปลง (ทั้ง 4 ชุดผ่าน `py_compile` แล้ว)
 
 ```bash
+pip install -r requirements.txt
 npm test
 ```
 
-ยิงกฎของ Copilot ใส่ workspace จำลอง 7 แบบ แล้วเช็คว่ากฎที่ควรทำงานคือตัวไหน
-รวมถึงเคสที่ไม่ควรเสนออะไรเลย (ผ่านครบ 7 เคส)
+ยิงกฎของ Copilot ใส่ workspace จำลอง 9 แบบ และทดสอบ AIS Cloud API อีก 5 เคส ครอบคลุม
+provision, อัปโหลดซ้ำ, telemetry, command, validation และ cascade delete
 
 ## ที่ยังไม่ได้ทำ
 
@@ -185,6 +218,7 @@ npm test
 - ยังแก้ "ค่าในช่อง" ของบล็อกเดิมไม่ได้ (เช่นบอกว่า DHT22 ต้องเว้นอย่างน้อย 2 วินาที
   แล้วขอแก้เลข 500 เป็น 2000 ให้) ทำได้แค่เพิ่มบล็อกกับครอบบล็อก
 - ผังการต่อวงจรยังไม่เตือนเมื่อใช้ขาซ้ำกันคนละหน้าที่ และไม่มีรายการอุปกรณ์รวม (BOM)
-- Web Flasher / Device Simulator / Dashboard
+- Web Flasher และ Device Simulator ตอนนี้เป็น mock ยังไม่ได้คุยกับ USB/ESP32 จริง
+- AIS Cloud Dashboard ยังไม่มีระบบ login, MQTT/WebSocket, alert และฐานข้อมูล time-series สำหรับ production
 - ระบบผู้ใช้ — ตอนนี้ทุกคนที่เปิดเห็นโปรเจกต์ชุดเดียวกัน ยังไม่มี Class Code หรือ Teacher Dashboard
-- `cloud_send()` ยิงไปที่ URL สมมติ (`api.terracore.dev`) ยังไม่มี endpoint จริงรองรับ
+- การเชื่อม Cloud จริง, credential จริง และการส่ง telemetry จาก ESP32 จริงยังไม่ได้ทำใน prototype นี้

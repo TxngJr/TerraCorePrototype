@@ -74,7 +74,7 @@
       },
       {
         kind: "category",
-        name: "WiFi & Cloud",
+        name: "WiFi & AIS Cloud",
         colour: C.cloud,
         contents: [
           { kind: "block", type: "terracore_wifi_connect" },

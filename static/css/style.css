@@ -146,6 +146,36 @@ button, input { font-family: inherit; font-size: inherit; color: inherit; }
 }
 .btn-primary:hover { background: #262a33; border-color: #262a33; }
 
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  position: relative;
+  border-color: var(--rule-2);
+  font-weight: 500;
+}
+.btn-upload svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.upload-cloud-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  display: none;
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+  background: var(--ok);
+}
+.btn-upload.has-dashboard .upload-cloud-dot { display: block; }
+
 .icon-btn {
   width: 32px;
   height: 32px;
@@ -421,6 +451,134 @@ button, input { font-family: inherit; font-size: inherit; color: inherit; }
 .modal-card p { margin: 0 0 22px; color: var(--ink-2); font-size: 14px; line-height: 1.65; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
+/* --------------------------------------------------------- Mock Web Flasher */
+.flash-card { width: min(560px, calc(100vw - 40px)); padding: 0; overflow: hidden; }
+.flash-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 21px 22px 15px;
+  border-bottom: 1px solid var(--rule);
+}
+.flash-head h2 { margin: 2px 0 0; }
+.flash-kicker {
+  color: var(--ink-4);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+}
+.flash-head .icon-btn:disabled { cursor: default; opacity: .35; }
+
+.flash-device {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  margin: 18px 22px 13px;
+  padding: 11px 13px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper-2);
+}
+.flash-device-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+}
+.flash-device-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+.flash-device strong { display: block; font-size: 13px; font-weight: 600; }
+.flash-device small { display: block; margin-top: 1px; color: var(--ink-4); font-size: 11px; }
+.flash-percent { color: var(--accent-ink); font-family: var(--mono); font-size: 12px; font-weight: 600; }
+
+.flash-progress { height: 4px; margin: 0 22px; overflow: hidden; border-radius: 4px; background: var(--paper-3); }
+.flash-progress span {
+  width: 0;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width .4s ease;
+}
+
+.flash-steps { margin: 13px 22px 17px; padding: 0; list-style: none; }
+.flash-steps li {
+  position: relative;
+  min-height: 31px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-4);
+  font-size: 12.5px;
+}
+.flash-steps li::after {
+  content: "";
+  position: absolute;
+  top: 21px;
+  bottom: -3px;
+  left: 5px;
+  width: 1px;
+  background: var(--rule-2);
+}
+.flash-steps li:last-child::after { display: none; }
+.step-mark {
+  position: relative;
+  z-index: 1;
+  width: 11px;
+  height: 11px;
+  flex: 0 0 11px;
+  border: 2px solid var(--rule-2);
+  border-radius: 50%;
+  background: var(--paper);
+}
+.flash-steps li.is-active { color: var(--ink); font-weight: 500; }
+.flash-steps li.is-active .step-mark { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-bg); }
+.flash-steps li.is-done { color: var(--ink-2); }
+.flash-steps li.is-done .step-mark { border-color: var(--accent); background: var(--accent); }
+.flash-steps li.is-done::after { background: #bdb6f5; }
+
+.flash-result {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  margin: 0 22px 17px;
+  padding: 12px 13px;
+  border: 1px solid #cfe8dc;
+  border-radius: 8px;
+  background: #eff8f4;
+}
+.result-check { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: var(--ok); color: #fff; }
+.result-check svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.flash-result strong { display: block; color: #176c4b; font-size: 13px; }
+.flash-result span:not(.result-check) { display: block; margin-top: 2px; overflow: hidden; color: var(--ink-3); font-family: var(--mono); font-size: 10.5px; text-overflow: ellipsis; white-space: nowrap; }
+
+.flash-card .flash-error {
+  margin: 0 22px 17px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #fdeceb;
+  color: var(--danger);
+  font-size: 12.5px;
+}
+.flash-actions {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 22px;
+  border-top: 1px solid var(--rule);
+  background: var(--paper-2);
+}
+.flash-actions > span { margin-right: auto; color: var(--ink-3); font-size: 11.5px; }
+.flash-actions .btn { display: inline-flex; align-items: center; text-decoration: none; }
+
 /* ------------------------------------------------------- โมดัลการต่อวงจร */
 .modal-wide .modal-card { padding: 0; }
 
@@ -672,6 +830,8 @@ button, input { font-family: inherit; font-size: inherit; color: inherit; }
   .pane-preview { width: 340px; flex-basis: 340px; }
   .pane-note { display: none; }
   .proj-name { width: 14ch; }
+  .btn-upload { width: 34px; padding: 0; justify-content: center; }
+  #btnUploadLabel { display: none; }
   :root { --code-size: 13px; --code-line: 20px; --code-pad: 14px; }
 }
 

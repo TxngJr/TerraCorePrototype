@@ -101,7 +101,7 @@
       id: "wifi-before-cloud",
       title: "ต่อ WiFi ก่อนส่งข้อมูล",
       reason:
-        "มีบล็อกส่งขึ้น Cloud แต่ยังไม่ได้เชื่อมต่อ WiFi ที่ไหนเลย " +
+        "มีบล็อกส่งไป AIS Cloud แต่ยังไม่ได้เชื่อมต่อ WiFi ที่ไหนเลย " +
         "ถ้าไม่ต่อก่อน ข้อมูลจะส่งไม่ออกและขึ้น error ตอนรัน",
       match: function (ws) {
         if (!byType(ws, "terracore_cloud_send").length) return null;
@@ -203,10 +203,10 @@
 
     {
       id: "send-sensor-to-cloud",
-      title: "ส่งค่าที่อ่านได้ขึ้น Dashboard",
+      title: "ส่งค่าที่อ่านได้ไป AIS Cloud Dashboard",
       reason:
-        "อ่านค่าจากเซนเซอร์แล้วแต่ยังไม่ได้ส่งไปไหน ส่งขึ้น TerraCORE Cloud " +
-        "เพื่อให้เห็นเป็นกราฟบน Dashboard",
+        "อ่านค่าจากเซนเซอร์แล้วแต่ยังไม่ได้ส่งไปไหน ส่งไป AIS Cloud Dashboard " +
+        "เพื่อให้เห็นเป็นกราฟบน AIS Cloud Dashboard",
       match: function (ws) {
         const loop = firstLoop(ws);
         if (!loop) return null;

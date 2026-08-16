@@ -97,8 +97,8 @@
 
     {
       id: "sensor_cloud",
-      name: "ส่งอุณหภูมิขึ้น Cloud",
-      desc: "อ่าน DHT22 แล้วส่งขึ้น TerraCORE Cloud ทุก 5 วินาที",
+      name: "ส่งอุณหภูมิไป AIS Cloud",
+      desc: "อ่าน DHT22 แล้วส่งไป AIS Cloud Dashboard ทุก 5 วินาที",
       workspace: {
         variables: [VAR_TEMP],
         blocks: {

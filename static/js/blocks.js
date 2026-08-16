@@ -271,7 +271,7 @@
       tooltip: "เทียบสัดส่วนค่าจากช่วงหนึ่งไปอีกช่วงหนึ่ง",
     },
 
-    // ---------- WiFi / Cloud ----------
+    // ---------- WiFi / AIS Cloud ----------
     {
       type: "terracore_wifi_connect",
       message0: "เชื่อมต่อ WiFi ชื่อ %1 รหัสผ่าน %2",
@@ -293,7 +293,7 @@
     },
     {
       type: "terracore_cloud_send",
-      message0: "ส่งขึ้น TerraCORE Cloud คีย์ %1 ค่า %2",
+      message0: "ส่งข้อมูลไป AIS Cloud Dashboard ช่อง %1 ค่า %2",
       args0: [
         { type: "field_input", name: "KEY", text: "temperature" },
         { type: "input_value", name: "VALUE" },
@@ -302,7 +302,7 @@
       previousStatement: null,
       nextStatement: null,
       colour: COLOR.cloud,
-      tooltip: "ส่งค่าเซนเซอร์ขึ้น Dashboard",
+      tooltip: "ส่งค่าเซนเซอร์ไปแสดงบน AIS Cloud Dashboard",
     },
   ]);
 
@@ -470,29 +470,12 @@
   };
 
   Py.forBlock["terracore_cloud_send"] = function (block, gen) {
-    needModule("urequests");
-    constant(
-      "TERRACORE_API",
-      "TERRACORE_API = 'https://api.terracore.dev/v1/ingest'"
-    );
-    constant(
-      "TERRACORE_DEVICE_TOKEN",
-      "TERRACORE_DEVICE_TOKEN = 'ใส่ Device Token ของคุณที่นี่'"
-    );
     helper(
       "cloud_send",
       "def cloud_send(key, value):\n" +
-        "    \"\"\"ส่งค่าหนึ่งค่าขึ้น TerraCORE Cloud เพื่อแสดงบน Dashboard\"\"\"\n" +
-        "    try:\n" +
-        "        res = urequests.post(\n" +
-        "            TERRACORE_API,\n" +
-        "            json={'token': TERRACORE_DEVICE_TOKEN, 'key': key, 'value': value},\n" +
-        "        )\n" +
-        "        res.close()\n" +
-        "        return True\n" +
-        "    except Exception as e:\n" +
-        "        print('ส่งข้อมูลไม่สำเร็จ:', e)\n" +
-        "        return False\n"
+        "    \"\"\"Mock เท่านั้น: แสดงค่าทาง Serial โดยไม่เชื่อม AIS จริง\"\"\"\n" +
+        "    print('[AIS Cloud Mock]', key, '=', value)\n" +
+        "    return True\n"
     );
     const key = gen.quote_(block.getFieldValue("KEY"));
     const value = gen.valueToCode(block, "VALUE", Py.ORDER_NONE) || "0";

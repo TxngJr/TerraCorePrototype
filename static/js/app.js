@@ -26,6 +26,8 @@
     btnWiring: $("btnWiring"),
     btnProjectMenu: $("btnProjectMenu"),
     btnMore: $("btnMore"),
+    btnUpload: $("btnUpload"),
+    btnUploadLabel: $("btnUploadLabel"),
     btnSave: $("btnSave"),
     statusSave: $("statusSave"),
     statusBlocks: $("statusBlocks"),
@@ -37,6 +39,17 @@
     modalCancel: $("modalCancel"),
     menu: $("menu"),
     toast: $("toast"),
+    flashModal: $("flashModal"),
+    flashClose: $("flashClose"),
+    flashDone: $("flashDone"),
+    flashSteps: $("flashSteps"),
+    flashProgressBar: $("flashProgressBar"),
+    flashPercent: $("flashPercent"),
+    flashStatus: $("flashStatus"),
+    flashResult: $("flashResult"),
+    flashDashboardUrl: $("flashDashboardUrl"),
+    flashOpenDashboard: $("flashOpenDashboard"),
+    flashError: $("flashError"),
   };
 
   const state = {
@@ -48,6 +61,8 @@
     loading: false, // กัน event ตอนโหลดไปสั่งบันทึกซ้ำ
     saveTimer: null,
     savedSig: null, // ลายเซ็นของสถานะที่บันทึกไปแล้ว ใช้กันบันทึกซ้ำโดยไม่จำเป็น
+    dashboard: null,
+    flashActive: false,
   };
 
   let workspace = null;
@@ -328,6 +343,7 @@
   async function loadProject(id) {
     const p = await api("/api/projects/" + id);
     state.project = p;
+    state.dashboard = p.dashboard || null;
     state.code = p.code || "";
     // ถ้าโค้ดถูกแก้มือไว้ ต้องอยู่โหมดโค้ดเท่านั้น ไม่งั้นจะเห็นสองอย่างไม่ตรงกัน
     state.codeDirty = !!p.code_dirty;
@@ -358,6 +374,7 @@
       applyMode(p.mode === "code" ? "code" : "block");
     }
     state.savedSig = signature(buildPayload());
+    updateUploadUI();
     setStatus("เปิด “" + p.name + "” แล้ว");
     window.TerraCoreCopilot.schedule();
   }
@@ -633,16 +650,118 @@
   }
 
   function openMoreMenu() {
+    const items = [
+      { label: "คัดลอกโค้ด", onSelect: copyCode },
+      { label: "ดาวน์โหลด main.py", onSelect: downloadCode },
+    ];
+    if (state.dashboard) {
+      items.push({
+        label: "เปิด AIS Cloud Dashboard",
+        hint: "ออนไลน์",
+        onSelect: openDashboard,
+      });
+    }
+    items.push({ type: "sep" });
+    items.push({ label: "ลบโปรเจกต์นี้", danger: true, onSelect: deleteProject });
     openMenu(
       els.btnMore,
-      [
-        { label: "คัดลอกโค้ด", onSelect: copyCode },
-        { label: "ดาวน์โหลด main.py", onSelect: downloadCode },
-        { type: "sep" },
-        { label: "ลบโปรเจกต์นี้", danger: true, onSelect: deleteProject },
-      ],
+      items,
       "right"
     );
+  }
+
+  /* ---------------------------------------------------- Mock Web Flasher */
+  function wait(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  function updateUploadUI() {
+    els.btnUpload.classList.toggle("has-dashboard", !!state.dashboard);
+    els.btnUploadLabel.textContent = state.dashboard
+      ? "อัปโหลดอีกครั้ง"
+      : "อัปโหลดไป ESP32";
+  }
+
+  function setFlashStage(index, percent, status) {
+    const steps = Array.from(els.flashSteps.children);
+    steps.forEach(function (step, stepIndex) {
+      step.classList.toggle("is-done", stepIndex < index || index >= steps.length);
+      step.classList.toggle("is-active", stepIndex === index && index < steps.length);
+    });
+    els.flashProgressBar.style.width = percent + "%";
+    els.flashPercent.textContent = percent + "%";
+    els.flashStatus.textContent = status;
+  }
+
+  function resetFlashModal() {
+    setFlashStage(0, 3, "กำลังเตรียมการอัปโหลด…");
+    els.flashResult.hidden = true;
+    els.flashError.hidden = true;
+    els.flashDone.hidden = true;
+    els.flashOpenDashboard.hidden = true;
+    els.flashClose.disabled = true;
+  }
+
+  function closeFlashModal() {
+    if (state.flashActive) return;
+    els.flashModal.hidden = true;
+  }
+
+  function openDashboard() {
+    if (!state.dashboard) return;
+    window.open(state.dashboard.dashboard_url, "_blank", "noopener");
+  }
+
+  async function uploadToDevice() {
+    if (!state.project || state.flashActive) return;
+    closeMenu();
+    state.flashActive = true;
+    resetFlashModal();
+    els.flashModal.hidden = false;
+
+    try {
+      if (window.TerraCoreCopilot.isShowing()) window.TerraCoreCopilot.dismiss();
+      refreshCode();
+      await save(false);
+
+      setFlashStage(0, 10, "กำลัง compile โค้ด MicroPython");
+      await wait(420);
+      setFlashStage(1, 24, "พบ ESP32 DevKit v1 ผ่าน USB Serial");
+      await wait(520);
+      setFlashStage(2, 42, "กำลังเขียน main.py · block 1/3");
+      await wait(430);
+      setFlashStage(2, 61, "กำลังเขียน main.py · block 3/3");
+      await wait(520);
+      setFlashStage(3, 78, "ตรวจ checksum และรีสตาร์ตบอร์ด");
+      await wait(520);
+      setFlashStage(4, 89, "กำลัง provision AIS Cloud Dashboard");
+
+      const dashboard = await api("/api/projects/" + state.project.id + "/mock-upload", {
+        method: "POST",
+        body: JSON.stringify({ code: state.code }),
+      });
+      await wait(430);
+      state.dashboard = dashboard;
+      updateUploadUI();
+      setFlashStage(5, 100, "พร้อมรับ–ส่งข้อมูลกับ AIS Cloud");
+
+      const absoluteUrl = new URL(dashboard.dashboard_url, window.location.origin).href;
+      els.flashDashboardUrl.textContent = absoluteUrl;
+      els.flashOpenDashboard.href = dashboard.dashboard_url;
+      els.flashResult.hidden = false;
+      els.flashDone.hidden = false;
+      els.flashOpenDashboard.hidden = false;
+      els.flashClose.disabled = false;
+      toast("อัปโหลดสำเร็จและสร้าง AIS Cloud Dashboard แล้ว");
+    } catch (e) {
+      els.flashError.textContent = "อัปโหลดไม่สำเร็จ: " + e.message;
+      els.flashError.hidden = false;
+      els.flashStatus.textContent = "หยุดการอัปโหลดแล้ว";
+      els.flashDone.hidden = false;
+      els.flashClose.disabled = false;
+    } finally {
+      state.flashActive = false;
+    }
   }
 
   /* -------------------------------------------------------- ส่งออกโค้ด */
@@ -671,7 +790,10 @@
     els.tabCode.addEventListener("click", function () { setMode("code"); });
     els.btnToCode.addEventListener("click", function () { setMode("code"); });
     els.btnResync.addEventListener("click", resyncFromBlocks);
+    els.btnUpload.addEventListener("click", uploadToDevice);
     els.btnSave.addEventListener("click", function () { save(true); });
+    els.flashClose.addEventListener("click", closeFlashModal);
+    els.flashDone.addEventListener("click", closeFlashModal);
 
     els.btnWiring.addEventListener("click", function () {
       window.TerraCoreWiring.open(workspace, selectedPin());

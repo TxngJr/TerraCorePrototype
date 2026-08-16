@@ -86,7 +86,7 @@ const CASES = [
     place: "connect",
   },
   {
-    name: "ส่ง Cloud แต่ไม่ต่อ WiFi -> เตือนต่อ WiFi ก่อน",
+    name: "ส่ง AIS Cloud แต่ไม่ต่อ WiFi -> เตือนต่อ WiFi ก่อน",
     json: loop([
       B("terracore_cloud_send", { KEY: "temperature" }, { VALUE: num(0) }),
       DELAY(),
@@ -95,7 +95,7 @@ const CASES = [
     place: "top",
   },
   {
-    name: "อ่านเซนเซอร์แต่ไม่ส่งไปไหน -> ชวนส่งขึ้น Dashboard",
+    name: "อ่านเซนเซอร์แต่ไม่ส่งไปไหน -> ชวนส่งไป AIS Cloud Dashboard",
     json: loop([
       B("variables_set", { VAR: { id: "vT", name: "อุณหภูมิ" } }, { VALUE: { block: DHT() } }),
       DELAY(),
@@ -104,7 +104,7 @@ const CASES = [
     place: "connect",
   },
   {
-    name: "ส่งขึ้น Cloud แล้วแต่ไม่แสดงค่า -> ชวนใส่ print",
+    name: "ส่งไป AIS Cloud แล้วแต่ไม่แสดงค่า -> ชวนใส่ print",
     json: [
       {
         type: "terracore_on_start",
@@ -142,7 +142,7 @@ const CASES = [
       }),
       DELAY(),
     ]),
-    // กฎอื่นอาจยังมีอะไรแนะนำได้ (เช่นชวนส่งค่าขึ้น Dashboard) แต่ต้องไม่ใช่
+    // กฎอื่นอาจยังมีอะไรแนะนำได้ (เช่นชวนส่งค่าไป AIS Cloud Dashboard) แต่ต้องไม่ใช่
     // การชวนครอบซ้ำ เพราะครอบไปแล้ว
     notExpect: "map-analog-to-pwm",
   },
